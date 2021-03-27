@@ -1,0 +1,16 @@
+dontinline,*.*_all_jmhStub
+dontinline,*.*_avgt_jmhStub
+dontinline,*.*_sample_jmhStub
+dontinline,*.*_ss_jmhStub
+dontinline,*.*_thrpt_jmhStub
+inline,org/cloudsimplus/collections/SortedSetVsLinkedList.doSetup
+inline,org/cloudsimplus/collections/SortedSetVsLinkedList.testCustomLinkedListAdd
+inline,org/cloudsimplus/collections/SortedSetVsLinkedList.testCustomLinkedListAddRandomIncrement
+inline,org/cloudsimplus/collections/SortedSetVsLinkedList.testCustomLinkedListAddReversed
+inline,org/cloudsimplus/collections/SortedSetVsLinkedList.testCustomLinkedListAddReversedRandomIncrement
+inline,org/cloudsimplus/collections/SortedSetVsLinkedList.testSortedSetAdd
+inline,org/cloudsimplus/collections/SortedSetVsLinkedList.testSortedSetAddRandomIncrement
+inline,org/cloudsimplus/heuristics/CloudletToVmMappingSolutionBenchmark.doSetup
+inline,org/cloudsimplus/heuristics/CloudletToVmMappingSolutionBenchmark.testCreateNeighbor
+inline,org/cloudsimplus/heuristics/CloudletToVmMappingSolutionBenchmark.testGetCostWhenFirstCall
+inline,org/cloudsimplus/heuristics/CloudletToVmMappingSolutionBenchmark.testGetCostWhenSecondCall
