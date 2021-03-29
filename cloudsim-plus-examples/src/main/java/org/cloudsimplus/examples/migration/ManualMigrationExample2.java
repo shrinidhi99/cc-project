@@ -33,7 +33,7 @@ import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
-import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
+import org.cloudbus.cloudsim.datacenters.DatacenterParallel;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostSimple;
 import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
@@ -52,6 +52,8 @@ import org.cloudsimplus.listeners.EventListener;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Arrays;
+
 
 /**
  * An example showing how perform a manual VM migration
@@ -87,7 +89,7 @@ import java.util.List;
  * @see MigrationExample1
  * @since CloudSim Plus 5.0.4
  */
-public final class ManualMigrationExample1 {
+public final class ManualMigrationExample2 {
     /**
      * @see Datacenter#getSchedulingInterval()
      */
@@ -132,7 +134,7 @@ public final class ManualMigrationExample1 {
      */
     private final List<Vm> vmList = new ArrayList<>();
     private final DatacenterBrokerSimple broker;
-    private final DatacenterSimple datacenter0;
+    private final DatacenterParallel datacenter0;
 
     private CloudSim simulation;
     private List<Host> hostList;
@@ -144,10 +146,10 @@ public final class ManualMigrationExample1 {
      * @param args
      */
     public static void main(String[] args) {
-        new ManualMigrationExample1();
+        new ManualMigrationExample2();
     }
 
-    private ManualMigrationExample1(){
+    private ManualMigrationExample2(){
         /*Enables just some level of log messages.
           Make sure to import org.cloudsimplus.util.Log;*/
         // Log.setLevel(ch.qos.logback.classic.Level.WARN);
@@ -184,17 +186,22 @@ public final class ManualMigrationExample1 {
      */
     private void clockTickListener(EventInfo info) {
         int host_index = hostList.size()-1;
-        // ArrayList<Double> arr = new ArrayList<Double>();
-
-        boolean pre = true;
+        double[] arr = new double[vmList.size()];
+        Arrays.fill(arr, 0);
+        
+		boolean pre = true;
+		double completed_size = 0;
+        // write code to sort list based on the vm size
         if(!migrationRequested && info.getTime() >= 10){
             for (int i=0; i<vmList.size(); i++) {
-                Vm sourceVm = vmList.get(i);
-
+				Vm sourceVm = vmList.get(i);
+				if(i != 0)
+                    completed_size = vmList.get(i - 1).getRam().getCapacity();
+                
                 Host targetHost = hostList.get(get_host_for_migration(sourceVm, host_index));
                 System.out.printf("%n# Requesting the migration of %s to %s%n%n", sourceVm, targetHost);
                 
-                datacenter0.requestVmMigration(sourceVm, targetHost, pre, DIRTYING_RATE);
+                datacenter0.requestVmMigration(sourceVm, targetHost, arr);
                 pre = false;        //  Use pre-copy only for the first VM
                 this.migrationRequested = true;
             }
@@ -266,6 +273,14 @@ public final class ManualMigrationExample1 {
             list.add(createVm(VM_PES));
         }
 
+        //Additional vm with more memory 
+        final Vm vm = new VmSimple(VM_MIPS, VM_PES);
+        // vm
+        //   .setRam(VM_RAM*2).setBw((long)VM_BW).setSize(VM_SIZE)
+        //   .setCloudletScheduler(new CloudletSchedulerTimeShared());
+        // list.add(vm);
+
+
         vmList.addAll(list);
         broker.submitVmList(list);
     }
@@ -284,7 +299,7 @@ public final class ManualMigrationExample1 {
      *
      * @return
      */
-    private DatacenterSimple createDatacenter() {
+    private DatacenterParallel createDatacenter() {
         this.hostList = new ArrayList<>();
         for(int i = 0; i < HOSTS; i++){
             final int pes = HOST_INITIAL_PES + i;
@@ -292,7 +307,7 @@ public final class ManualMigrationExample1 {
         }
         System.out.println();
 
-        DatacenterSimple dc = new DatacenterSimple(simulation, hostList, new VmAllocationPolicyFirstFit());
+        DatacenterParallel dc = new DatacenterParallel(simulation, hostList, new VmAllocationPolicyFirstFit());
         dc.setSchedulingInterval(SCHEDULING_INTERVAL);
         return dc;
     }
