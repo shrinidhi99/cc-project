@@ -34,6 +34,10 @@ The main contribution of the paper under consideration is that it proposes two n
 - To run parallel migration run `ParallelMigration.java` 
 - To run m-mixed migration run `mMixedMigration.java` 
 
+## GitHub Project Repository
+
+[GitHub Repository](https://github.com/shrinidhi99/cc-project.git)
+
 ## Authors
 * Avakash Bhat 171CO110
 
