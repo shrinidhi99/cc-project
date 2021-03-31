@@ -95,7 +95,7 @@ public final class ManualMigrationExample2 {
      */
     private static final int  SCHEDULING_INTERVAL = 1;
     private static final int  HOSTS = 5;
-    private static final int  VMS = 3;
+    private static final int  VMS = 8;
     private static final int  HOST_MIPS = 1000; //for each PE
     private static final int  HOST_INITIAL_PES = 4;
     private static final long HOST_RAM = 500000; //host memory (MB)
@@ -116,7 +116,7 @@ public final class ManualMigrationExample2 {
      * Since VMs in this example are created with 2000 MB of RAM, any migration
      * will take 2 seconds to finish, as can be seen in the logs.
      */
-    private static final long   HOST_BW = 1000; //Mb/s
+    private static final long   HOST_BW = 2000; //Mb/s
 
     private static final int    VM_MIPS = 1000; //for each PE
     private static final long   VM_SIZE = 1000; //image size (MB)
@@ -201,7 +201,7 @@ public final class ManualMigrationExample2 {
                 Host targetHost = hostList.get(get_host_for_migration(sourceVm, host_index));
                 System.out.printf("%n# Requesting the migration of %s to %s%n%n", sourceVm, targetHost);
                 
-                datacenter0.requestVmMigration(sourceVm, targetHost, arr);
+                datacenter0.requestVmMigration(sourceVm, targetHost, true,DIRTYING_RATE,8);
                 pre = false;        //  Use pre-copy only for the first VM
                 this.migrationRequested = true;
             }
