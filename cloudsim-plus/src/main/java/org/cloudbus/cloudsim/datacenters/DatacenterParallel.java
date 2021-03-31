@@ -1001,8 +1001,8 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
             return;
         }
 
-        // final double delay = timeToMigrateVm(sourceVm, targetHost);
-        //Serial Migration
+      
+        //Improved Serial Migration
         final double delay = timeToMigrateVm(sourceVm, targetHost, dirtyingRate,preCopy, numOfVms);
 
         final String msg1 =
@@ -1020,6 +1020,42 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
             send(this, delay, CloudSimTags.VM_MIGRATE, new TreeMap.SimpleEntry<>(sourceVm, targetHost));
         }
     }
+
+        //Parallel Migration
+        public void requestVmMigration(final Vm sourceVm, Host targetHost, boolean preCopy, double dirtyingRate, double numOfVms, boolean isParallel) {
+            final String currentTime = getSimulation().clockStr();
+            final Host sourceHost = sourceVm.getHost();
+    
+            //If Host.NULL is given, it must try to find a target host
+            if(targetHost == Host.NULL){
+                targetHost = vmAllocationPolicy.findHostForVm(sourceVm).orElse(Host.NULL);
+            }
+    
+            //If a host couldn't be found yet
+            if(targetHost == Host.NULL) {
+                LOGGER.warn("{}: {}: No suitable host found for {} in {}", sourceVm.getSimulation().clockStr(), getClass().getSimpleName(), sourceVm, this);
+                return;
+            }
+    
+          
+            //Parallel Migration
+            final double delay = timeToMigrateVm(sourceVm, targetHost, dirtyingRate, numOfVms, isParallel);
+    
+            final String msg1 =
+                sourceHost == Host.NULL ?
+                    String.format("%s to %s", sourceVm, targetHost) :
+                    String.format("%s from %s to %s", sourceVm, sourceHost, targetHost);
+    
+            final String msg2 = String.format(
+                "It's expected to finish in %.2f seconds, considering the %.0f%% of bandwidth allowed for migration and the VM RAM size.",
+                delay, getBandwidthPercentForMigration()*100);
+            LOGGER.info("{}: {}: Migration of {} is started. {}", currentTime, getName(), msg1, msg2);
+    
+            if(targetHost.addMigratingInVm(sourceVm)) {
+                sourceHost.addVmMigratingOut(sourceVm);
+                send(this, delay, CloudSimTags.VM_MIGRATE, new TreeMap.SimpleEntry<>(sourceVm, targetHost));
+            }
+        }
 
     /**
      * Computes the expected time to migrate a VM to a given Host.
@@ -1058,7 +1094,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
         System.out.println("VM RAM: " + vm.getRam().getCapacity());
         double second_part = (1 - Math.pow((ratio),ns+1))/(1 - ratio);
         delay = init_part*second_part;
-        System.out.println("\nInd Delay rate: " + delay + "\nTotal Delay: " + delay * numOfVms +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
+        System.out.println("\nAverage Delay: " + delay + "\nTotal Delay: " + delay * numOfVms +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
         
         //Downtime Calc
         double r_ns = Math.pow(ratio, ns);
@@ -1099,7 +1135,81 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
         double r_ns = Math.pow(ratio, ns);
         double down_sec_part = (numOfVms-1) * init_part * second_part;
         double downtime = init_part * r_ns + (numOfVms - 1) * alpha * init_part;
-        System.out.println("\nInd Delay rate: " + delay + "\nTotal Delay: " + delay * numOfVms +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
+        System.out.println("\nAverage Delay: " + delay + "\nTotal Delay: " + delay * numOfVms +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
+        System.out.println("Down Time: " + downtime);
+
+        return delay;
+        // return vm.getRam().getCapacity() / Conversion.bitesToBytes(targetHost.getBw().getCapacity() * getBandwidthPercentForMigration());
+    }
+
+    //Parallel Migration downtime and Migration Time calculation
+    private double timeToMigrateVm(final Vm vm, final Host targetHost, double dirtyingRate,double numOfVms, boolean isParallel) {
+       
+        double threshold = 100;
+        double memoryLeft = (vm.getRam().getCapacity()-threshold);
+        double copyingRate = Conversion.bitesToBytes(targetHost.getBw().getCapacity() * getBandwidthPercentForMigration());
+        double ratio = dirtyingRate/copyingRate;
+        double Mr = numOfVms * ratio;
+        double np = Math.log(threshold/vm.getRam().getCapacity())/Math.log(Mr);
+        double delay = 0;
+       
+        while(memoryLeft > 0)
+        {
+            memoryLeft += dirtyingRate - copyingRate;
+         
+        }
+        double init_part = (vm.getRam().getCapacity()*numOfVms)/copyingRate;
+        System.out.println("VM RAM: " + vm.getRam().getCapacity());
+        double second_part = (1 - Math.pow((Mr),np+1))/(1 - Mr);
+        // delay = init_part*second_part;
+        
+        double total_delay = 0;
+        total_delay = init_part * second_part;
+
+        //Since parallely migrated the total delay = delay
+        delay = total_delay;
+
+        //Downtime Calc
+        double Mr_np = Math.pow(Mr, np);
+        double downtime = init_part *Mr_np;
+        System.out.println("\nAverage Delay: " + delay + "\nTotal Delay: " + total_delay +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + np + "\n");
+        System.out.println("Down Time: " + downtime);
+
+        return delay;
+        // return vm.getRam().getCapacity() / Conversion.bitesToBytes(targetHost.getBw().getCapacity() * getBandwidthPercentForMigration());
+    }
+
+    // M mixed migration -- TODO
+    private double timeToMigrateVm(final Vm vm, final Host targetHost, double dirtyingRate,double numOfVms, int m) {
+       
+        double threshold = 100;
+        double memoryLeft = (vm.getRam().getCapacity()-threshold);
+        double copyingRate = Conversion.bitesToBytes(targetHost.getBw().getCapacity() * getBandwidthPercentForMigration());
+        double ratio = dirtyingRate/copyingRate;
+        double Mr = numOfVms * ratio;
+        double np = Math.log(threshold/vm.getRam().getCapacity())/Math.log(Mr);
+        double delay = 0;
+       
+        while(memoryLeft > 0)
+        {
+            memoryLeft += dirtyingRate - copyingRate;
+         
+        }
+        double init_part = (vm.getRam().getCapacity()*numOfVms)/copyingRate;
+        System.out.println("VM RAM: " + vm.getRam().getCapacity());
+        double second_part = (1 - Math.pow((Mr),np+1))/(1 - Mr);
+        // delay = init_part*second_part;
+        
+        double total_delay = 0;
+        total_delay = init_part * second_part;
+
+        //Since parallely migrated the total delay = delay
+        delay = total_delay;
+
+        //Downtime Calc
+        double Mr_np = Math.pow(Mr, np);
+        double downtime = init_part *Mr_np;
+        System.out.println("\nAverage Delay: " + delay + "\nTotal Delay: " + total_delay +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + np + "\n");
         System.out.println("Down Time: " + downtime);
 
         return delay;
