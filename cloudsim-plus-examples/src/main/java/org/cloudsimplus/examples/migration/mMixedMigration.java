@@ -89,7 +89,7 @@ import java.util.Arrays;
  * @see MigrationExample1
  * @since CloudSim Plus 5.0.4
  */
-public final class ManualMigrationExample2 {
+public final class mMixedMigration {
     /**
      * @see Datacenter#getSchedulingInterval()
      */
@@ -127,9 +127,9 @@ public final class ManualMigrationExample2 {
     private static final long   CLOUDLET_LENGHT = 20000;
     private static final long   CLOUDLET_FILESIZE = 300;
     private static final long   CLOUDLET_OUTPUTSIZE = 300;
-    private static final double   DIRTYING_RATE = 0;
+    private static final double   DIRTYING_RATE = 7.5;
 
-    int m = 1;
+    int m = 4;
 
     /**
      * List of all created VMs.
@@ -148,10 +148,10 @@ public final class ManualMigrationExample2 {
      * @param args
      */
     public static void main(String[] args) {
-        new ManualMigrationExample2();
+        new mMixedMigration();
     }
 
-    private ManualMigrationExample2(){
+    private mMixedMigration(){
         /*Enables just some level of log messages.
           Make sure to import org.cloudsimplus.util.Log;*/
         // Log.setLevel(ch.qos.logback.classic.Level.WARN);
@@ -202,21 +202,10 @@ public final class ManualMigrationExample2 {
                 
                 Host targetHost = hostList.get(get_host_for_migration(sourceVm, host_index));
                 System.out.printf("%n# Requesting the migration of %s to %s%n%n", sourceVm, targetHost);
-                
-                //Only Keep one of these uncommented 
-
-                //Serial Migration
-                datacenter0.requestVmMigration(sourceVm, targetHost,DIRTYING_RATE,VMS);
-
-                //Improved Serial Migration call
-                datacenter0.requestVmMigration(sourceVm, targetHost, true,DIRTYING_RATE,VMS);
-
-                //Parallel Migration
-                datacenter0.requestVmMigration(sourceVm, targetHost,true,DIRTYING_RATE,VMS,true);
+            
 
                 //M-mixed migration
-                //final Vm sourceVm, Host targetHost, double dirtyingRate, double numOfVms, int m
-                // datacenter0.requestVmMigration(sourceVm, targetHost,DIRTYING_RATE,VMS,m);
+                datacenter0.requestVmMigration(sourceVm, targetHost,DIRTYING_RATE,VMS,m);
 
 
 
