@@ -60,7 +60,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
      */
     private double lastTimeUnderOrOverloadedHostsDetected = -Double.MAX_VALUE;
 
-    private double COPYINfG_RATE = 15;
+    // private double COPYINfG_RATE = 15;
 
     /**
      * @see #getBandwidthPercentForMigration()
