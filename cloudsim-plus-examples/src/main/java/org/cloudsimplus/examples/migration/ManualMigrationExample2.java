@@ -201,7 +201,19 @@ public final class ManualMigrationExample2 {
                 Host targetHost = hostList.get(get_host_for_migration(sourceVm, host_index));
                 System.out.printf("%n# Requesting the migration of %s to %s%n%n", sourceVm, targetHost);
                 
-                datacenter0.requestVmMigration(sourceVm, targetHost, true,DIRTYING_RATE,8);
+                //Only Keep one of these uncommented 
+
+                //Improved Serial Migration call
+                // datacenter0.requestVmMigration(sourceVm, targetHost, true,DIRTYING_RATE,VMS);
+
+                //Serial Migration
+                // datacenter0.requestVmMigration(sourceVm, targetHost,DIRTYING_RATE,VMS);
+
+                //Parallel Migration
+                datacenter0.requestVmMigration(sourceVm, targetHost,true,DIRTYING_RATE,VMS,true);
+
+
+
                 pre = false;        //  Use pre-copy only for the first VM
                 this.migrationRequested = true;
             }
