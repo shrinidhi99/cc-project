@@ -174,7 +174,7 @@ public final class ImprovedSerialMigration {
         new CloudletsTableBuilder(finishedList).build();
         System.out.printf("%nHosts CPU usage History (when the allocated MIPS is lower than the requested, it is due to VM migration overhead)%n");
 
-        hostList.forEach(this::printHostHistory);
+        // hostList.forEach(this::printHostHistory);
         System.out.println(getClass().getSimpleName() + " finished!");
     }
 
