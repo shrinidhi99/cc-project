@@ -1131,7 +1131,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
         System.out.println("VM RAM: " + vm.getRam().getCapacity());
         double second_part = (1 - Math.pow((ratio),ns+1))/(1 - ratio);
         delay = init_part*second_part;
-        System.out.println("\nAverage Delay: " + delay + "\nTotal Delay: " + delay * numOfVms +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
+        System.out.println("\nDelay: " + delay + "\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
         
         //Downtime Calc
         double r_ns = Math.pow(ratio, ns);
@@ -1146,7 +1146,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
     //Improved Serial Migration downtime and migration time
     private double timeToMigrateVm(final Vm vm, final Host targetHost, double dirtyingRate, boolean preCopy, double numOfVms) {
        
-        double alpha = 1;
+        double alpha = 0.7;
         double threshold = 100;
         double memoryLeft = (vm.getRam().getCapacity()-threshold);
         double copyingRate = Conversion.bitesToBytes(targetHost.getBw().getCapacity() * getBandwidthPercentForMigration());
@@ -1172,7 +1172,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
         double r_ns = Math.pow(ratio, ns);
         double down_sec_part = (numOfVms-1) * init_part * second_part;
         double downtime = init_part * r_ns + (numOfVms - 1) * alpha * init_part;
-        System.out.println("\nAverage Delay: " + delay + "\nTotal Delay: " + delay * numOfVms +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
+        System.out.println("\nDelay: " + delay +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + ns + "\n");
         System.out.println("Down Time: " + downtime);
 
         return delay;
@@ -1211,7 +1211,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
         //Downtime Calc
         double Mr_np = Math.pow(Mr, np);
         double downtime = init_part * Mr_np;
-        System.out.println("\nAverage Delay: " + (delay/numOfVms) + "\nTotal Delay: " + total_delay +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + np + "\n");
+        System.out.println("\nDelay: " + (delay/numOfVms) +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + np + "\n");
         System.out.println("Down Time: " + downtime);
 
         return delay;
@@ -1222,7 +1222,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
     private double timeToMigrateVm(final Vm vm, final Host targetHost, double dirtyingRate,double numOfVms, int m) {
        
         double threshold = 100;
-        double alpha = 1;
+        double alpha = 0.7;
         double memoryLeft = (vm.getRam().getCapacity()-threshold);
         double copyingRate = Conversion.bitesToBytes(targetHost.getBw().getCapacity() * getBandwidthPercentForMigration());
         double ratio = dirtyingRate/copyingRate;
@@ -1250,7 +1250,7 @@ public class DatacenterParallel extends CloudSimEntity implements Datacenter {
         //Downtime Calc
         double Mr_np = Math.pow(Mr, nm);
         double downtime = init_part *Mr_np+third_part+0.1;
-        System.out.println("\nAverage Delay: " + delay + "\nTotal Delay: " + total_delay +"\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + nm + "\n");
+        System.out.println("\nAverage Delay: " + delay + "\nDirtying Rate: " + dirtyingRate + "\nratio: " + ratio + "\nn(s): " + nm + "\n");
         System.out.println("Down Time: " + downtime);
 
         return delay;
